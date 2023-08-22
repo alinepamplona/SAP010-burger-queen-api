@@ -7,6 +7,7 @@ const {
 
 const {
   getUsers,
+  getUserById
 } = require('../controller/users');
 
 const initAdminUser = (app, next) => {
@@ -92,8 +93,7 @@ module.exports = (app, next) => {
    * @code {403} si no es ni admin o la misma usuaria
    * @code {404} si la usuaria solicitada no existe
    */
-  app.get('/users/:uid', requireAuth, (req, resp) => {
-  });
+  app.get('/users/:uid', requireAuth, getUserById);
 
   /**
    * @name POST /users
