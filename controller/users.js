@@ -33,5 +33,50 @@ module.exports = {
     } catch (error) {
       return next(error);
     }
+  },
+  createUser: async (req, resp, next) => {
+    try {
+      const user = await User.create(req.body) // {email:"email", password:"password", role:"role"}
+
+      return resp.json(user)
+    } catch (error) {
+      return next(error);
+    }
+  },
+  updateUser: async (req, resp, next) => {
+    try {
+      // uid = quem?
+      // body = o que?
+      const { uid } = req.params
+
+      await User.update(req.body, {
+        where: {
+          id: uid
+        }
+      })
+
+      const user = await User.findByPk(uid)
+
+      return resp.json(user)
+    } catch (error) {
+      return next(error);
+    }
+  },
+  userDelete: async (req, resp, next) =>{
+    try {
+      const { uid } = req.params
+
+      const user = await User.findByPk(uid)
+
+      await User.destroy({
+        where: {
+          id: uid
+        }
+      });
+
+      return resp.json(user)
+    } catch (error) {
+      return next(error);
+    }
   }
 };

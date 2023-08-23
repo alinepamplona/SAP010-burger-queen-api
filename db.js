@@ -21,10 +21,10 @@ sequelize
   .sync({ alter: true })
   //.sync({ force: true })
   .then(() => {
-    console.log('Tabelas sincronizadas com o banco de dados.');
+    console.log('Tabelas sincronizadas.');
   })
   .catch((err) => {
-    console.error('Erro ao sincronizar tabelas:', err);
+    console.error('Erro ao sincronizar:', err);
   });
 
 // Exporta o sequelize que vai ser usado para manipular os dados
