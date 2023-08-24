@@ -40,6 +40,12 @@ module.exports = {
 
       return resp.json(user)
     } catch (error) {
+      console.log(error.message)
+      
+      if(error.message.includes("notNull Violation")){
+        return next({statusCode: "400", message:"Email e password não podem ser vazios"})
+      }
+
       return next(error);
     }
   },
@@ -67,6 +73,10 @@ module.exports = {
       const { uid } = req.params
 
       const user = await User.findByPk(uid)
+
+      if (!user) {
+        return next({statusCode: "404", message:"Usuário não encontrado"})
+      }
 
       await User.destroy({
         where: {
