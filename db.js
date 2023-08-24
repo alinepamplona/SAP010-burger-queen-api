@@ -18,7 +18,7 @@ const sequelize = new Sequelize(database, user, password, {
 
 // Inicializa o banco de dados de acordo com o models (que serão as tabelas)
 sequelize
-  .sync({ alter: true })
+  .sync()
   //.sync({ force: true })
   .then(() => {
     console.log('Tabelas sincronizadas.');
