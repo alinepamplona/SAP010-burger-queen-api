@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../db');
+const Order = require('./orders');
 
 /**
  * Cria a classe user que vai representar a tabela users no DB
@@ -35,5 +36,9 @@ const User = sequelize.define('users', {
   }, {
     freezeTableName: true
 });
+
+// Relação 1:M
+User.hasMany(Order, { foreignKey: 'userId' });
+Order.belongsTo(User);
 
 module.exports = User;
