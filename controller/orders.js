@@ -1,25 +1,50 @@
 const Order  = require('../model/orders');
 const Product = require('../model/products');
+const OrderProducts = require('../model/orderProducts');
 
 module.exports = {
   createOrder: async (req, resp, next) => {
     try {
       console.log(req.body)
 
-      const order = await Order.create(req.body)
+      const { userId, client, status, dateEntry, products } = req.body;
 
-      const { products } = order
+      // Cria a ordem sem os produtos associados
+      const order = await Order.create({
+        userId,
+        client,
+        status,
+        dateEntry
+      });
 
-      const productsModel = []
-      for(const productOrder of products) {
-        const { qty, id } = productOrder
-        const product = await Product.findByPk(id)
-        productsModel.push({ qty, product })
-      }
+      // Cria os registros na tabela intermediária (OrderProducts) associados à ordem
+      const orderProductPromises = products.map(product => {
+        return OrderProducts.create({
+          orderId: order.id,
+          productId: product.product.id,
+          qty: product.qty
+        });
+      });
 
-      order.products = productsModel
+      // Aguarda a criação de todos os registros na tabela intermediária
+      await Promise.all(orderProductPromises);
 
-      return resp.json(order)
+      // Constrói o objeto de resposta
+      const response = {
+        id: order.id,
+        userId,
+        client,
+        products/*: products.map(product => ({
+          qty: product.qty,
+          product: {
+            ...product.product
+          }
+        }))*/,
+        status,
+        dateEntry
+      };
+
+      resp.json(response);
     } catch (error) {
       return next(error)
     }

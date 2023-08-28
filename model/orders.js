@@ -20,10 +20,6 @@ const Order = sequelize.define('orders', {
     allowNull: false,
     unique: true,
   },
-  products: {
-    type: DataTypes.JSON,
-    allowNull: false,
-  },
   status: {
     type: DataTypes.ENUM('pending', 'canceled', 'delivering', 'delivered'),
     allowNull: false,
@@ -38,5 +34,13 @@ const Order = sequelize.define('orders', {
 }, {
   freezeTableName: true
 });
+
+// Associação N:M com quantidade usando a tabela intermediária
+Order.associate = (models) => {
+  Order.belongsToMany(models.Product, {
+    through: models.OrderProducts,
+    foreignKey: 'orderId',
+  });
+};
 
 module.exports = Order;
