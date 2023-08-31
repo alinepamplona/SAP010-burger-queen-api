@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../db');
-
+const OrderProducts = require('./orderProducts');
+const Order = require('./orders');
 
 const Product = sequelize.define('products', {
   id: {
@@ -35,9 +36,10 @@ const Product = sequelize.define('products', {
 
 // Associação N:M com quantidade usando a tabela intermediária
 Product.associate = (models) => {
-  Product.belongsToMany(models.Order, {
-    through: models.OrderProducts,
+  Product.belongsToMany(Order, {
+    through: OrderProducts,
     foreignKey: 'productId',
+    as: 'orders'
   });
 };
 

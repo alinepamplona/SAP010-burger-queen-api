@@ -1,5 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../db');
+const Order = require('./orders');
+const Product = require('./products');
 
 const OrderProducts = sequelize.define('order_products', {
   id: {
@@ -30,5 +32,15 @@ const OrderProducts = sequelize.define('order_products', {
 }, {
   freezeTableName: true
 });
+
+OrderProducts.associate = (models) => {
+  OrderProducts.belongsTo(Product, {
+    foreignKey: 'productId'
+  });
+
+  OrderProducts.belongsTo(Order, {
+    foreignKey: 'orderId'
+  });
+};
 
 module.exports = OrderProducts;
