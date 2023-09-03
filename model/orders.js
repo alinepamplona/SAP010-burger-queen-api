@@ -46,24 +46,4 @@ const Order = sequelize.define('orders', {
   });
 //};
 
-/*Order.prototype.toJSON = function () {
-  const values = { ...this.get() };
-
-  if (values.products && values.products.length > 0) {
-    values.products = values.products.map(product => {
-      const { qty } = product.order_products
-      delete product.order_products
-
-      console.log(product)
-
-      return {
-        qty,
-        product
-      }
-    });
-  }
-
-  return values;
-};*/
-
 module.exports = Order;

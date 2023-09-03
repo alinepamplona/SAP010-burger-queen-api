@@ -1,5 +1,6 @@
 const User = require('../model/users');
 const { Op } = require("sequelize");
+const bcrypt = require('bcrypt');
 
 /**
  * Interface responsavel por pegar os dados do DB
@@ -36,9 +37,14 @@ module.exports = {
   },
   createUser: async (req, resp, next) => {
     try {
-      const user = await User.create(req.body) // {email:"email", password:"password", role:"role"}
+      const { email, password, role } = req.body
+      const user = await User.create({
+        email,
+        password: bcrypt.hashSync(password, 10),
+        role
+      })
 
-      return resp.json(user)
+      return resp.status(200).json(user)
     } catch (error) {
       console.log(error.message)
       
@@ -54,8 +60,13 @@ module.exports = {
       // uid = quem?
       // body = o que?
       const { uid } = req.params
+      const { email, password, role } = req.body
 
-      await User.update(req.body, {
+      await User.update({
+        email,
+        password: bcrypt.hashSync(password, 10),
+        role
+      }, {
         where: {
           id: uid
         }
