@@ -76,6 +76,8 @@ module.exports = {
       const offset = (req.query._page - 1) * limit;
   
       const orders = await Order.findAll({
+        limit,
+        offset,
         include: [{
           model: Product,
           as: 'products'
@@ -84,7 +86,7 @@ module.exports = {
 
       const responseOrders = orders.map(order => formatOrder(order))
   
-      return resp.json(responseOrders);
+      return resp.status(200).json(responseOrders);
     } catch (error) {
       return next(error);
     }
@@ -162,18 +164,6 @@ module.exports = {
           id: orderId
         }
       })
-
-      // Cria os registros na tabela intermediária (OrderProducts) associados à ordem
-      /*const orderProductPromises = products.map(product => {
-        return OrderProducts.create({
-          orderId: order.id,
-          productId: product.product.id,
-          qty: product.qty
-        });
-      });
-
-      // Aguarda a criação de todos os registros na tabela intermediária
-      await Promise.all(orderProductPromises);*/
 
       const order = await Order.findByPk(orderId, {
         include: [{

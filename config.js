@@ -11,7 +11,9 @@ const dbConfig = {
 };
 
 // auth
-const secret = process.env.JWT_SECRET || 'esta-es-la-api-burger-queen';
+const secret = process.env.JWT_SECRET || 'api-burger-queen';
+const adminEmail = process.env.ADMIN_EMAIL || 'admin'
+const adminPassword = process.env.ADMIN_PASSWORD || 'admin'
 
 // node
 const port =  process.argv[2] || process.env.PORT || 8080;
@@ -19,5 +21,7 @@ const port =  process.argv[2] || process.env.PORT || 8080;
 module.exports = {
   dbConfig,
   secret,
+  adminEmail,
+  adminPassword,
   port
 };
