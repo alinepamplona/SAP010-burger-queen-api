@@ -26,15 +26,20 @@ module.exports = (app, nextMain) => {
       return next(400);
     }
 
-    const user = User.findAll({
+    const users = await User.findAll({
       where: {
         email: email
       }
     })
 
     // email não cadastrado ou passoword errado
+    if(!users || users.length === 0) {
+      return next(400)
+    }
+
+    const user = users[0]
     const passwordCheck = await bcrypt.compare(password, user.password)
-    if(!user || passwordCheck) {
+    if (!passwordCheck) {
       return next(400)
     }
 
