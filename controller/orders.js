@@ -72,8 +72,8 @@ module.exports = {
   },*/
   getOrders: async (req, resp, next) => {
     try {
-      const limit = req.query._limit;
-      const offset = (req.query._page - 1) * limit;
+      const limit = parseInt(req.query._limit) || 10;
+      const offset = (req.query._page - 1) * limit || 0;
   
       const orders = await Order.findAll({
         limit,
