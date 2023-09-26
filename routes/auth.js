@@ -23,7 +23,7 @@ module.exports = (app, nextMain) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return next(400);
+      return resp.status(400).json({message: "Email ou password vazio"});
     }
 
     const users = await User.findAll({
@@ -32,15 +32,15 @@ module.exports = (app, nextMain) => {
       }
     })
 
-    // email não cadastrado ou passoword errado
+    // email não cadastrado
     if(!users || users.length === 0) {
-      return next(400)
+      return resp.status(404).json({message: "Email não cadastrado"})
     }
 
     const user = users[0]
     const passwordCheck = await bcrypt.compare(password, user.password)
     if (!passwordCheck) {
-      return next(400)
+      return resp.status(404).json({message: "Password incorreto"})
     }
 
     const token = jwt.sign({ user }, secret, {

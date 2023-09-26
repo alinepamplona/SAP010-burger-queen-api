@@ -4,7 +4,6 @@ const { Op } = require("sequelize");
 module.exports = {
   getProducts: async (req, resp, next) => {
     try {
-      console.log(req.query)
       const limit = req.query._limit
       const offset = (req.query._page - 1)*limit
 
@@ -21,6 +20,10 @@ module.exports = {
 
       const product = await Product.findByPk(productId)
 
+      if (!product) {
+        return next(404)
+      }
+
       return resp.json(product);
     } catch (error) {
       return next(error);
@@ -30,9 +33,8 @@ module.exports = {
     try {
       const product = await Product.create(req.body) // {name: "", price:0, image:"", type:""}
 
-      return resp.json(product)
+      return resp.status(200).json(product)
     } catch (error) {
-      console.log(error.message)
       
       if(error.message.includes("notNull Violation")){
         return next({statusCode: "400", message:"Nenhum campo pode ser vazio"})
@@ -45,13 +47,34 @@ module.exports = {
     try {
       const { productId } = req.params
 
-      await Product.update(req.body, {
-        where: {
-          id: productId
-        }
-      })
-
       const product = await Product.findByPk(productId)
+
+      if (!product) {
+        return next(404)
+      }
+
+      const { name, price, image, type } = req.body
+
+      if(name) {
+        product.name = name
+      }
+
+      if(price) {
+        if (typeof price !== 'number') {
+          return next(400)
+        }
+        product.price = price
+      }
+
+      if(image) {
+        product.image = image
+      }
+
+      if(type) {
+        product.type = type
+      }
+
+      product.save()
 
       return resp.json(product)
     } catch (error) {
