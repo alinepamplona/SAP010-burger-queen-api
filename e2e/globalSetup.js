@@ -4,7 +4,7 @@ const kill = require('tree-kill');
 
 const config = require('../config');
 
-const port = process.env.PORT || 8888;
+const port = process.env.PORT || 8080;
 const baseUrl = process.env.REMOTE_URL || `http://127.0.0.1:${port}`;
 
 const __e2e = {
@@ -14,21 +14,25 @@ const __e2e = {
     email: config.adminEmail,
     password: config.adminPassword,
   },
-  adminToken: null,
+  adminToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoxLCJlbWFpbCI6ImFkbWluQGJ1cmdlcnF1ZWVuLmNvbSIsInBhc3N3b3JkIjoiJDJiJDEwJGx5Um9WZjNEM01WbDcxclJ0WXlVdnVnb2w1NVpjdWx5N3VZRnZ6Z3JJUE9kNll6NVB4WHpxIiwicm9sZSI6ImFkbWluIiwiY3JlYXRlZEF0IjoiMjAyMy0wOS0wNFQxOToyMToyMC4wMDBaIiwidXBkYXRlZEF0IjoiMjAyMy0wOS0wNFQxOToyMToyMC4wMDBaIn0sImlhdCI6MTY5NTE1NTIyMSwiZXhwIjoxNjk3NzQ3MjIxfQ.R_cDrHp-7z-93UEe_FP_f9zyuweZlo_RqshvKrxBPvo",
   testUserCredentials: {
     email: 'test@test.test',
     password: '123456',
   },
-  testUserToken: null,
+  testUserToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjo1LCJlbWFpbCI6InRlc3RAdGVzdC50ZXN0IiwicGFzc3dvcmQiOiIkMmIkMTAkQm5BL2VubHVOZWRTVWhXTk90OWROZVFSeWlzSll0SDJYZm0xeU9FbENXdk9nZ012MGtUNkciLCJyb2xlIjoid2FpdGVyIiwiY3JlYXRlZEF0IjoiMjAyMy0wOS0wN1QxOToxMzozNC4wMDBaIiwidXBkYXRlZEF0IjoiMjAyMy0wOS0xOVQyMDoyNzo0OS4wMDBaIn0sImlhdCI6MTY5NTE1NTI4MSwiZXhwIjoxNjk3NzQ3MjgxfQ.guttOMvNtMu4LbhTe-moU-bCn0hqqB0I_4NT6kuYUms",
   childProcessPid: null,
   // in `testObjects` we keep track of objects created during the test run so
   // that we can clean up before exiting.
   // For example: ['users/foo@bar.baz', 'products/xxx', 'orders/yyy']
   // testObjects: [],
 };
-
+const delay = ms => new Promise(res => setTimeout(res, ms));
 const fetch = (url, opts = {}) => import('node-fetch')
-  .then(({ default: fetch }) => fetch(`${baseUrl}${url}`, {
+  .then(async ({ default: fetch }) => {
+    if (url === "/auth"){
+      await delay(500);
+    }
+    return fetch(`${baseUrl}${url}`, {
     ...opts,
     headers: {
       'content-type': 'application/json',
@@ -39,7 +43,7 @@ const fetch = (url, opts = {}) => import('node-fetch')
         ? { body: JSON.stringify(opts.body) }
         : {}
     ),
-  }));
+  })});
 
 const fetchWithAuth = (token) => (url, opts = {}) => fetch(url, {
   ...opts,

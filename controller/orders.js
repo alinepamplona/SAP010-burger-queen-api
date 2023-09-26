@@ -1,6 +1,7 @@
 const Order  = require('../model/orders');
 const Product = require('../model/products');
 const OrderProducts = require('../model/orderProducts');
+const { Op } = require("sequelize");
 
 function formatOrder(order) {
   const formattedOrder = {
@@ -26,55 +27,11 @@ function formatOrder(order) {
 }
 
 module.exports = {
-  /*getOrders2: async (req, resp, next) => {
-    try {
-      // TODO fazer query com paginação
-      const limit = req.query._limit
-      const offset = (req.query._page - 1)*limit
-
-      // Pega todos os Orders
-      const orders = await Order.findAll()
-
-      // Percorre cada Order para adicionar os Produtos dela
-      //orders.forEach(async (order) => 
-      for (const order of orders) {
-        // Pega todas as relações entre essa Order e os Products
-        const orderProducts = await OrderProducts.findAll({
-          where: {
-            orderId: order.id
-          }
-        })
-
-        console.log("orderProducts")
-
-        // Para cada Order precisamos criar um array de products => orders.products = [ {qty, product}, {qty, product} ]
-        const products = []
-        //orderProducts.map(async (orderProduct) => 
-        for(const orderProduct of orderProducts) {
-          // para isso tem que pegar cada relação Order - Product e consultar o produto na tabela Product pelo productId
-          const product = await Product.findByPk(orderProduct.productId)
-          console.log(product)
-          products.push({
-            qty: orderProduct.qty,
-            product: product
-          })
-        }//)
-
-        console.log(products)
-        order.dataValues.products = products
-      }//);
-
-      console.log(orders)
-      return resp.json(orders)
-    } catch (error) {
-      return next(error)
-    }
-  },*/
   getOrders: async (req, resp, next) => {
     try {
       const limit = parseInt(req.query._limit) || 10;
       const offset = (req.query._page - 1) * limit || 0;
-  
+
       const orders = await Order.findAll({
         limit,
         offset,
@@ -102,6 +59,10 @@ module.exports = {
         }]
       })
 
+      if (!order) {
+        return next(404)
+      }
+
       const responseOrder = formatOrder(order)
 
       return resp.json(responseOrder);
@@ -111,7 +72,28 @@ module.exports = {
   },
   createOrder: async (req, resp, next) => {
     try {
-      const { userId, client, status, dateEntry, products } = req.body;
+      const { userId, client, products } = req.body;
+
+      if (!userId || !products || products.length === 0) {
+        return resp.status(400).json({ message: 'userId e products são obrigatórios e a lista de produtos não pode estar vazia.' });
+      }
+
+      // Verifica se os produtos existem no banco de dados
+      const productIds = products.map(product => product.product.id);
+      const existingProducts = await Product.findAll({
+        where: {
+          id: {
+            [Op.in]: productIds, // Procura produtos cujos IDs estejam na lista
+          },
+        },
+      });
+
+      if (existingProducts.length !== products.length) {
+        return resp.status(400).json({ message: 'Um ou mais produtos não foram encontrados no banco de dados.' });
+      }
+
+      const status = 'pending'
+      const dateEntry = new Date()
 
       // Cria a ordem sem os produtos associados
       const order = await Order.create({
@@ -134,16 +116,14 @@ module.exports = {
       await Promise.all(orderProductPromises);
 
       // Constrói o objeto de resposta
-      const response = {
-        id: order.id,
-        userId,
-        client,
-        products,
-        status,
-        dateEntry
-      };
+      const responseOrder = formatOrder(await Order.findByPk(order.id, {
+        include: [{
+          model: Product,
+          as: 'products'
+        }]
+      }))
 
-      resp.json(response);
+      return resp.status(200).json(responseOrder);
     } catch (error) {
       return next(error)
     }
@@ -153,24 +133,29 @@ module.exports = {
       const { orderId } = req.params
       const { status } = req.body;
 
-      const updateOrder = { status }
-
-      if (status === 'canceled' || status === 'delivered') {
-        updateOrder.dateProcessed = new Date()
-      }
-
-      await Order.update(updateOrder, {
-        where: {
-          id: orderId
-        }
-      })
-
       const order = await Order.findByPk(orderId, {
         include: [{
           model: Product,
           as: 'products'
         }]
       })
+
+      if(!order) {
+        return next(404)
+      }
+
+      const statusType = ['pending', 'canceled', 'delivering', 'delivered']
+      if (!statusType.includes(status)){
+        return next(400)
+      }
+
+      order.status = status;
+
+      if (status === 'canceled' || status === 'delivered') {
+        order.dateProcessed = new Date()
+      }
+
+      order.save();
 
       const responseOrder = formatOrder(order)
       
